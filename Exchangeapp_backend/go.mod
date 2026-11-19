@@ -1,3 +1,4 @@
+// 这里类似于java的pom.xml文件
 module exchangeapp
 
 go 1.22.5
