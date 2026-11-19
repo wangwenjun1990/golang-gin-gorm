@@ -41,6 +41,7 @@ func SetupRouter() *gin.Engine {
 	api := r.Group("/api")
 	api.GET("/exchangeRates", controllers.GetExchangeRates)
 
+	// middlewares.AuthMiddleWare() 是登录认证token的中间件
 	api.Use(middlewares.AuthMiddleWare())
 	{
 		api.POST("/exchangeRates", controllers.CreateExchangeRate)
