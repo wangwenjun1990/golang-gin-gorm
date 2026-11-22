@@ -52,6 +52,8 @@ func InitConfig() {
 		log.Fatalf("Error reading config file: %v", err)
 	}
 
+	// &Config{} 会创建一个 Config 结构体，并取它的地址，得到一个类型为 *Config 的指针。
+	// & - 是取地址符
 	AppConfig = &Config{}
 
 	if err := viper.Unmarshal(AppConfig); err != nil {

@@ -9,11 +9,13 @@ import (
 	"gorm.io/gorm"
 )
 
-func initDB(){
+func initDB() {
+
+	// 因为 AppConfig 的类型是 *Config，而 Config 结构体中定义了 Database 字段
 	dsn := AppConfig.Database.Dsn
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-  
-	if err!=nil{
+
+	if err != nil {
 		log.Fatalf("Failed to initialize database, got error: %v", err)
 	}
 
@@ -23,7 +25,7 @@ func initDB(){
 	sqlDB.SetMaxOpenConns(AppConfig.Database.MaxOpenConns)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	if err !=nil{
+	if err != nil {
 		log.Fatalf("Failed to configure database, got error: %v", err)
 	}
 
