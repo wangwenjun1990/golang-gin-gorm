@@ -13,6 +13,17 @@ func initDB() {
 
 	// 因为 AppConfig 的类型是 *Config，而 Config 结构体中定义了 Database 字段
 	dsn := AppConfig.Database.Dsn
+
+	/**
+	何时加 & ?
+	func useValue(cfg gorm.Config) {}    // 参数需要结构体值
+	func usePointer(cfg *gorm.Config) {} // 参数需要指针
+
+	cfg := gorm.Config{}
+
+	useValue(cfg)
+	usePointer(&cfg)
+	*/
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	if err != nil {
