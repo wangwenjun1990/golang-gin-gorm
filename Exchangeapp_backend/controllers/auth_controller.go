@@ -37,36 +37,47 @@ func Register(ctx *gin.Context) {
 	// 用 bcrypt 计算密码哈希。函数返回两个值，分别存到 hashedPwd 和 err。
 	hashedPwd, err := utils.HashPassword(user.Password)
 
-	if err != nil { // 检查密码哈希是否计算失败。
-		// 返回 HTTP 500，并把错误文本放进响应的 error 字段。
+	// 检查密码哈希是否计算失败。
+	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return // 结束当前函数，后面的数据库操作不会执行。
-	} // 密码哈希错误的处理到这里结束。
+		return
+	}
 
-	user.Password = hashedPwd // 将 user 中的密码换成哈希值，稍后写入数据库。
+	// 将 user 中的密码换成哈希值，稍后写入数据库。
+	user.Password = hashedPwd
 
 	// 用用户名生成签名后的 JWT。:= 声明新变量 token，并给已有的 err 重新赋值。
 	token, err := utils.GenerateJWT(user.Username)
 
-	if err != nil { // 检查 JWT 是否生成失败。
-		// 返回 HTTP 500，并把错误文本放进响应的 error 字段。
+	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return // 结束当前函数，后面的数据库操作不会执行。
-	} // JWT 生成错误的处理到这里结束。
+		return
+	}
+
+	/**
+		最重要的一句话：函数名前面的括号表示“这个方法属于谁”，函数名后面的括号表示“调用这个方法需要传入什么参数”。
+
+		func (接收者) 方法名(参数) 返回值 {
+	    	// 方法体
+		}
+	*/
 
 	// global.Db 是项目的 GORM 数据库对象。AutoMigrate 根据 User 模型创建或更新表结构。
 	if err := global.Db.AutoMigrate(&user); err != nil {
-		// 返回 HTTP 500，并把错误文本放进响应的 error 字段。
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return // 结束当前函数，跳过插入用户记录的步骤。
-	} // 表结构迁移错误的处理到这里结束。
+		return
+	}
 
-	// Create 插入一条用户记录，&user 让 GORM 可以回填生成的 ID。.Error 取得插入错误。
+	/**
+	这里的 .Error 之所以可以直接使用，是因为 GORM 的 Create() 方法返回的是一个 *gorm.DB 对象，而这个对象里面有一个叫 Error 的字段。
+	注意：.Error 是访问结构体字段，不是调用方法。
+	*/
+
+	// Create 插入一条用户记录，&user 让 GORM 可以回填生成的 ID。
 	if err := global.Db.Create(&user).Error; err != nil {
-		// 返回 HTTP 500，并把错误文本放进响应的 error 字段。
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return // 结束当前函数，跳过返回令牌的步骤。
-	} // 插入用户错误的处理到这里结束。
+		return
+	}
 
 	// 用户记录插入成功后，返回 HTTP 200，并把 JWT 放进 JSON 的 token 字段。
 	ctx.JSON(http.StatusOK, gin.H{"token": token})
